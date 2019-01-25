@@ -178,14 +178,15 @@ type GetItemOutput struct {
 }
 
 type GetItemsInput struct {
-	Path           string
-	AttributeNames []string
-	Filter         string
-	Marker         string
-	ShardingKey    string
-	Limit          int
-	Segment        int
-	TotalSegments  int
+	Path              string
+	AttributeNames    []string
+	Filter            string
+	Marker            string
+	ShardingKey       string
+	Limit             int
+	Segment           int
+	TotalSegments     int
+	SortKeyRangeStart string
 }
 
 type GetItemsOutput struct {

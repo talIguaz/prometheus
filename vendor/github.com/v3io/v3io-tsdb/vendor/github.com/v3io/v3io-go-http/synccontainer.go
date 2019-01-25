@@ -207,6 +207,10 @@ func (sc *SyncContainer) GetItems(input *GetItemsInput) (*Response, error) {
 		body["Segment"] = input.Segment
 	}
 
+	if input.SortKeyRangeStart != "" {
+		body["SortKeyRangeStart"] = input.SortKeyRangeStart
+	}
+
 	marshalledBody, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
@@ -222,7 +226,7 @@ func (sc *SyncContainer) GetItems(input *GetItemsInput) (*Response, error) {
 		return nil, err
 	}
 
-	sc.logger.DebugWith("Body", "body", string(response.Body()))
+	//sc.logger.DebugWith("Body", "body", string(response.Body()))
 
 	getItemsResponse := struct {
 		Items            []map[string]map[string]string
@@ -236,13 +240,17 @@ func (sc *SyncContainer) GetItems(input *GetItemsInput) (*Response, error) {
 		return nil, err
 	}
 
-	//validate getItems response to avoid infinite loop
-	if getItemsResponse.LastItemIncluded != "TRUE" && (getItemsResponse.NextMarker == "" || getItemsResponse.NextMarker == input.Marker) {
-		errMsg := fmt.Sprintf("Invalid getItems response: lastItemIncluded=false and nextMarker='%s', " +
-			"startMarker='%s', probably due to object size bigger than 2M. Query is: %+v", getItemsResponse.NextMarker, input.Marker, input)
-		sc.logger.Error(errMsg)
-		return nil, errors.New(errMsg)
-	}
+	sc.logger.Debug("for item %v%v start marker %v, startAfterSortingKey: %v, limit: %v", input.Path, input.ShardingKey, input.Marker, input.SortKeyRangeStart, input.Limit)
+	sc.logger.Debug("last included: %v, next: %v", getItemsResponse.LastItemIncluded, getItemsResponse.NextMarker)
+
+	//Taking a different approach
+	////validate getItems response to avoid infinite loop
+	//if getItemsResponse.LastItemIncluded != "TRUE" && (getItemsResponse.NextMarker == "" || getItemsResponse.NextMarker == input.Marker) {
+	//	errMsg := fmt.Sprintf("Invalid getItems response: lastItemIncluded=false and nextMarker='%s', " +
+	//		"startMarker='%s', probably due to object size bigger than 2M. Query is: %+v", getItemsResponse.NextMarker, input.Marker, input)
+	//	sc.logger.Error(errMsg)
+	//	return nil, errors.New(errMsg)
+	//}
 
 	getItemsOutput := GetItemsOutput{
 		NextMarker: getItemsResponse.NextMarker,
