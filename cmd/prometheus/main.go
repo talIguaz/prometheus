@@ -190,7 +190,7 @@ func main() {
 		Default("5m").SetValue(&cfg.lookbackDelta)
 
 	a.Flag("query.timeout", "Maximum time a query may take before being aborted.").
-		Default("2m").SetValue(&cfg.queryTimeout)
+		Default("10m").SetValue(&cfg.queryTimeout)
 
 	a.Flag("query.max-concurrency", "Maximum number of queries executed concurrently.").
 		Default("20").IntVar(&cfg.queryConcurrency)
