@@ -175,7 +175,7 @@ func (ic *AsyncItemsCursor) NextItem() (v3io.Item, error) {
 	ic.items = getItemsResp.Items
 	ic.itemIndex = 0
 
-	if !getItemsResp.Last {
+	if len(getItemsResp.Items) > 0 {
 
 		// if not last, make a new request to that shard
 		input := resp.Context.(*v3io.GetItemsInput)
