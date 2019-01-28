@@ -185,11 +185,22 @@ func (ic *AsyncItemsCursor) NextItem() (v3io.Item, error) {
 			if err != nil {
 				return nil, err
 			}
-			lastSortingKey := strings.Split(objectName, ".")[1]
+			splittdObjectName := strings.Split(objectName, ".")
+			if len(splittdObjectName) == 2 {
+				lastSortingKey := splittdObjectName[1]
 
-			ic.logger.Info("getting next items after calculating next marker for %v%v is %v for the object=%v", input.Path, input.ShardingKey, lastSortingKey, objectName)
-			input.SortKeyRangeStart = lastSortingKey + "0"
-			input.Marker = ""
+				ic.logger.Info("getting next items after calculating next marker for %v%v is %v for the object=%v", input.Path, input.ShardingKey, lastSortingKey, objectName)
+				input.SortKeyRangeStart = lastSortingKey + "0"
+				input.Marker = ""
+			} else {
+				// In case it is names query
+				if getItemsResp.Last {
+					ic.lastShards++
+					return ic.NextItem()
+				} else {
+					input.Marker = getItemsResp.NextMarker
+				}
+			}
 		} else {
 			// set next marker
 			input.Marker = getItemsResp.NextMarker
