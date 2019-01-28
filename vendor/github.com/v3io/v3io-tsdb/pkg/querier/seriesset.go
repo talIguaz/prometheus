@@ -59,7 +59,7 @@ func (s *V3ioSeriesSet) getItems(partition *partmgr.DBPartition, name, filter st
 	if name != "" {
 		shardingKeys = partition.GetShardingKeys(name)
 	}
-	attrs := []string{"_lset", "_ooo", "_name", "_maxtime"}
+	attrs := []string{"_lset", "_ooo", "_name", "_maxtime", "__name"}
 
 	if s.aggrSeries != nil && s.canAggregate {
 		s.attrs = s.aggrSeries.GetAttrNames()

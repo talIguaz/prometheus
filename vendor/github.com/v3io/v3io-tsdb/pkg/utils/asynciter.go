@@ -21,8 +21,6 @@ such restriction.
 package utils
 
 import (
-	"fmt"
-	"sort"
 	"strings"
 
 	"github.com/nuclio/logger"
@@ -183,18 +181,14 @@ func (ic *AsyncItemsCursor) NextItem() (v3io.Item, error) {
 		// TODO - 2 options: a) next marker. b) calculate next marker
 		//input.Marker = getItemsResp.NextMarker
 		if getItemsResp.NextMarker == "" || getItemsResp.NextMarker == input.Marker {
-			lastLabelSetStr, err := ic.items[len(ic.items)-1].GetFieldString("_lset")
+			objectName, err := ic.items[len(ic.items)-1].GetFieldString("__name")
 			if err != nil {
 				return nil, err
 			}
-			lset, err := labelsFromString(lastLabelSetStr)
-			if err != nil {
-				return nil, err
-			}
-			hash := lset.Hash()
-			nextMarker := fmt.Sprintf("%016x", hash)
-			ic.logger.Info("getting next items after calculating next marker for %v%v is %v", input.Path, input.ShardingKey, nextMarker)
-			input.SortKeyRangeStart = nextMarker + "0"
+			lastSortingKey := strings.Split(objectName, ".")[1]
+
+			ic.logger.Info("getting next items after calculating next marker for %v%v is %v for the object=%v", input.Path, input.ShardingKey, lastSortingKey, objectName)
+			input.SortKeyRangeStart = lastSortingKey + "0"
 			input.Marker = ""
 		} else {
 			// set next marker
@@ -214,27 +208,6 @@ func (ic *AsyncItemsCursor) NextItem() (v3io.Item, error) {
 
 	// and recurse into next now that we repopulated response
 	return ic.NextItem()
-}
-
-func labelsFromString(lbls string) (Labels, error) {
-	lset := Labels{}
-
-	if lbls != "" {
-		splitLset := strings.Split(lbls, ",")
-		for _, l := range splitLset {
-			splitLbl := strings.Split(l, "=")
-			if len(splitLbl) != 2 {
-				return nil, errors.New("Labels must be in the form 'key1=label1[,key2=label2,...]'.")
-			}
-
-			if err := IsValidLabelName(splitLbl[0]); err != nil {
-				return nil, errors.Wrap(err, fmt.Sprintf("Illegal label name: '%s'", splitLbl[0]))
-			}
-			lset = append(lset, Label{Name: splitLbl[0], Value: splitLbl[1]})
-		}
-	}
-	sort.Sort(lset)
-	return lset, nil
 }
 
 // gets all items
